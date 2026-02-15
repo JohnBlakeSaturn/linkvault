@@ -125,7 +125,7 @@ export default function AuthPage() {
           </button>
         </div>
         <h1 className="font-display text-3xl">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
-        <p className="muted mt-2 text-sm">Use your account to unlock file sharing and advanced link controls.</p>
+        <p className="muted mt-2 text-sm">Use your account to unlock advanced file-sharing options.</p>
       </div>
 
       <form onSubmit={submit} className="space-y-4 p-6">
@@ -138,7 +138,7 @@ export default function AuthPage() {
               value={form.name}
               onBlur={() => setTouched((t) => ({ ...t, name: true }))}
               onChange={(e) => setForm((f) => ({ ...f, name: sanitizeName(e.target.value) }))}
-              placeholder="Alex Johnson"
+              placeholder="John Blake"
               className="input-modern"
             />
           </label>

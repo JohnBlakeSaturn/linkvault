@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="panel flex flex-col items-start justify-between gap-4 p-6 text-sm text-slate-600 md:flex-row md:items-center dark:text-slate-300">
         <div>
           <LinkVaultLogo className="h-10 w-auto text-slate-900 dark:text-slate-100" />
-          <p className="mt-1">Private links for text and files with expiry-first security.</p>
+          <p className="mt-1">Built by JohnBlakeSaturn (Satyaki Saha)</p>
         </div>
         <div className="flex items-center gap-4">
           <button type="button" onClick={() => scrollToSection('features')} className="nav-link">

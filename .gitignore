@@ -29,3 +29,6 @@ logs/
 # Local uploads
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# Local docs
+docs/

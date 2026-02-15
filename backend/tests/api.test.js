@@ -36,6 +36,14 @@ afterAll(async () => {
 });
 
 describe('LinkVault API', () => {
+  async function registerAgent(agent, email = 'auth@example.com') {
+    return agent.post('/api/auth/register').send({
+      name: 'Auth User',
+      email,
+      password: 'StrongPass123!'
+    });
+  }
+
   it('allows guest to create default text link', async () => {
     const response = await request(app).post('/api/links').field('text', 'hello from guest');
 
@@ -74,11 +82,7 @@ describe('LinkVault API', () => {
   it('allows authenticated user to create file link with custom options', async () => {
     const agent = request.agent(app);
 
-    const reg = await agent.post('/api/auth/register').send({
-      name: 'Auth User',
-      email: 'auth@example.com',
-      password: 'StrongPass123!'
-    });
+    const reg = await registerAgent(agent);
 
     expect(reg.status).toBe(201);
 
@@ -93,5 +97,39 @@ describe('LinkVault API', () => {
     expect(response.body.type).toBe('file');
     expect(response.body.maxViews).toBe(3);
     expect(response.body.passwordProtected).toBe(true);
+  });
+
+  it('accepts allowed file types', async () => {
+    const agent = request.agent(app);
+    const reg = await registerAgent(agent, 'allowed@example.com');
+    expect(reg.status).toBe(201);
+
+    const response = await agent
+      .post('/api/links')
+      .attach('file', Buffer.from([0x89, 0x50, 0x4e, 0x47]), {
+        filename: 'image.png',
+        contentType: 'image/png'
+      })
+      .field('expiresAt', new Date(Date.now() + 20 * 60 * 1000).toISOString());
+
+    expect(response.status).toBe(201);
+    expect(response.body.type).toBe('file');
+  });
+
+  it('rejects unsupported file types with 415', async () => {
+    const agent = request.agent(app);
+    const reg = await registerAgent(agent, 'blocked@example.com');
+    expect(reg.status).toBe(201);
+
+    const response = await agent
+      .post('/api/links')
+      .attach('file', Buffer.from('MZfake'), {
+        filename: 'malware.exe',
+        contentType: 'application/x-msdownload'
+      })
+      .field('expiresAt', new Date(Date.now() + 20 * 60 * 1000).toISOString());
+
+    expect(response.status).toBe(415);
+    expect(response.body.message).toBe('Unsupported file type');
   });
 });

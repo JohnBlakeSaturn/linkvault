@@ -78,7 +78,7 @@ export default function LinkViewPage() {
   return (
     <section ref={revealRef} className="mx-auto max-w-3xl panel p-7 md:p-9">
       <h1 className="font-display text-3xl">Secure Link Access</h1>
-      <p className="muted mt-2 text-sm">Only required prompts are shown to keep access quick and clean.</p>
+      <p className="muted mt-2 text-sm">Access your text/file below!</p>
 
       {!opened && !needsPassword ? (
         <div className="mt-5">

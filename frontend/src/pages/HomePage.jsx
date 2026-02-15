@@ -21,15 +21,15 @@ function toDatetimeLocalValue(date) {
 }
 
 const featureCards = [
-  { title: 'Private link-only access', text: 'Nothing is listed publicly. Exact tokens only.' },
-  { title: 'Expiry-first by default', text: 'Anonymous users get secure default text sharing in 10 minutes.' },
-  { title: 'Advanced controls for members', text: 'Sign in for file sharing, passwords, one-time links, and max-view limits.' }
+  { title: 'Private link-only access', text: 'Nothing is listed publicly. Accessible only by exact link.' },
+  { title: 'Expiry-first by default', text: 'Privacy first: quick uploads, fast downloads, hassle-free clean-ups.' },
+  { title: 'Membership benefits for free', text: 'Sign up for advanced file sharing, password protected links and max-view limits.' }
 ];
 
 const testimonials = [
-  { name: 'Ananya R.', role: 'QA Lead', quote: 'Temporary secure links reduced accidental exposure in our test reports.', tone: 'from-sky-400 to-blue-500' },
-  { name: 'Marcus T.', role: 'Freelance Designer', quote: 'The flow is smooth and the links feel safer than attachment chains.', tone: 'from-indigo-400 to-violet-500' },
-  { name: 'Ritu S.', role: 'Student Developer', quote: 'Default quick-share is fast, and login unlocks the power options.', tone: 'from-cyan-400 to-sky-500' }
+  { name: 'Ash Ketchum', role: 'Reigning World Champion', quote: 'If only I used LinkVault to store my note on the Greyninja vs Charizard match-up, I would have been world champion 2 seasons ago.', tone: 'from-sky-400 to-blue-500' },
+  { name: 'Gandalf', role: 'The White (Formerly Grey) Wizard', quote: 'You shall not open links... without password.', tone: 'from-indigo-400 to-violet-500' },
+  { name: 'My Grandma', role: 'Experienced Beta Tester', quote: 'Looks nice... but how do I install candy crush saga on this?', tone: 'from-cyan-400 to-sky-500' }
 ];
 
 function initials(name) {
@@ -194,19 +194,19 @@ export default function HomePage() {
             </div>
           </div>
           <article data-hero-intro className="interactive-card rounded-3xl border border-white/60 bg-white/60 p-6 shadow-panel backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
-            <p className="accent-text text-xs uppercase tracking-widest">Current build includes</p>
+            <p className="accent-text text-xs uppercase tracking-widest">Latest Features: </p>
             <ul className="mt-4 space-y-3 text-sm">
               <li>Secure text/file sharing with expiring links</li>
-              <li>Password, one-time, and max-view controls</li>
+              <li>Password, one-time and max-view controls</li>
               <li>Passport local auth with user dashboard</li>
-              <li>Scheduled cleanup + hardened API middleware</li>
+              <li>Scheduled cleanup + improved security</li>
             </ul>
           </article>
         </div>
       </section>
 
       <section id="features" className="space-y-4">
-        <p className="accent-text text-xs font-semibold uppercase tracking-[0.2em]">What we made so far</p>
+        <p className="accent-text text-xs font-semibold uppercase tracking-[0.2em]">What makes LinkVault better</p>
         <div className="grid gap-4 md:grid-cols-3">
           {featureCards.map((card) => (
             <article key={card.title} data-scroll-card className="panel interactive-card p-6">
@@ -243,7 +243,7 @@ export default function HomePage() {
               </svg>
               <div>
                 <p className="text-sm font-semibold">Live share blueprint</p>
-                <p className="muted text-xs">Updates as you configure options on the right.</p>
+                <p className="muted text-xs">Updates as you configure options.</p>
               </div>
             </div>
             <ul className="mt-4 space-y-2 text-sm">
@@ -418,7 +418,7 @@ export default function HomePage() {
       </section>
 
       <section id="testimonials" className="space-y-4">
-        <p className="accent-text text-xs font-semibold uppercase tracking-[0.2em]">Dummy testimonials</p>
+        <p className="accent-text text-xs font-semibold uppercase tracking-[0.2em]">Testimonials</p>
         <div className="grid gap-4 md:grid-cols-3">
           {testimonials.map((item) => (
             <article key={item.name} data-scroll-card className="panel interactive-card p-6">
@@ -439,7 +439,7 @@ export default function HomePage() {
             <div className="border-b border-white/45 bg-white/45 p-6 dark:border-slate-700 dark:bg-slate-900/55">
               <h3 className="font-display text-2xl">Sign in to continue</h3>
               <p className="muted mt-2 text-sm">
-                This control is available for registered users. Quick text sharing still works without signing in.
+                This option is available for registered users only. Quick text sharing works without an account.
               </p>
             </div>
             <div className="p-6">

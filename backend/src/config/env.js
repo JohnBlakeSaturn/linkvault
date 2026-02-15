@@ -10,5 +10,9 @@ export const env = {
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   uploadDir: process.env.UPLOAD_DIR || 'uploads',
   maxFileSizeMb: Number(process.env.MAX_FILE_SIZE_MB || 25),
-  cleanupCron: process.env.CLEANUP_CRON || '*/2 * * * *'
+  cleanupCron: process.env.CLEANUP_CRON || '*/2 * * * *',
+  allowedMimeTypes: (process.env.ALLOWED_MIME_TYPES || '')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean)
 };
