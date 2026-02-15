@@ -166,4 +166,4 @@ Additional manual scenarios are documented in `docs/test-plan.md`.
 ## Data Flow Diagram
 
 See:
-- `docs/data-flow.mmd`
+- `docs/data-flow.md`

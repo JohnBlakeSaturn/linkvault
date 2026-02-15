@@ -34,3 +34,4 @@ backend/uploads/*
 docs/*
 !docs/test-plan.md
 !docs/data-flow.mmd
+!docs/data-flow.md
