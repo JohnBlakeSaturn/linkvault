@@ -55,6 +55,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .brand {
@@ -73,6 +74,23 @@ body {
   color: var(--text);
   cursor: pointer;
   font-weight: 600;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.user-pill {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.42rem 0.72rem;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .page-wrap {
@@ -116,6 +134,9 @@ body {
 
 .hero-actions {
   margin-top: 1.5rem;
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
 }
 
 .upload-form {
@@ -135,6 +156,9 @@ body {
 }
 
 textarea,
+input[type='text'],
+input[type='email'],
+input[type='password'],
 input[type='datetime-local'],
 input[type='file'] {
   width: 100%;
@@ -254,6 +278,21 @@ input:disabled {
   color: var(--muted);
 }
 
+.auth-card {
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.auth-switch {
+  color: var(--muted);
+  margin-top: 1rem;
+}
+
+.auth-switch a {
+  color: var(--brand);
+  text-decoration: none;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -266,6 +305,15 @@ input:disabled {
 }
 
 @media (max-width: 740px) {
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .nav-actions {
+    justify-content: flex-start;
+  }
+
   .hero-card,
   .panel-card {
     padding: 1.2rem;

@@ -98,6 +98,7 @@ exports.createUpload = async (req, res) => {
 
     const uploadData = {
       id,
+      createdBy: req.user?._id || null,
       uploadType: hasText ? 'text' : 'file',
       content: hasText ? normalizedText : null,
       fileName: file ? path.basename(file.originalname) : null,
@@ -185,14 +186,14 @@ exports.deleteContent = async (req, res) => {
       return res.status(404).json({ error: 'Content not found' });
     }
 
-    const upload = await Upload.findById(id);
+    const upload = await Upload.findByIdForUser(id, req.user?._id);
 
     if (!upload) {
-      return res.status(404).json({ error: 'Content not found' });
+      return res.status(403).json({ error: 'You do not have permission to delete this content' });
     }
 
     removeStoredFile(upload.filePath);
-    await Upload.delete(id);
+    await Upload.deleteForUser(id, req.user?._id);
 
     return res.json({ success: true, message: 'Deleted successfully' });
   } catch (error) {

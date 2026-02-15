@@ -14,7 +14,7 @@ function ViewPage() {
       setError('');
 
       try {
-        const response = await fetch(`/api/content/${id}/info`);
+        const response = await fetch(`/api/content/${id}/info`, { credentials: 'include' });
         const data = await response.json();
 
         if (!response.ok) {

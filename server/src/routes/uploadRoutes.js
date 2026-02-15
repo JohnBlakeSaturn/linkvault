@@ -6,6 +6,7 @@ const fs = require('fs');
 const { randomUUID } = require('crypto');
 const uploadController = require('../controllers/uploadController');
 const { createRateLimiter } = require('../middleware/rateLimit');
+const requireAuth = require('../middleware/requireAuth');
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../../uploads');
@@ -62,10 +63,10 @@ function handleUpload(req, res, next) {
 }
 
 // Routes
-router.post('/upload', uploadRateLimiter, handleUpload, uploadController.createUpload);
+router.post('/upload', uploadRateLimiter, requireAuth, handleUpload, uploadController.createUpload);
 router.get('/content/:id', readRateLimiter, uploadController.getContent);
 // uploadRoutes.js - Add this new route
 router.get('/content/:id/info', readRateLimiter, uploadController.getContentInfo);
-router.delete('/content/:id', readRateLimiter, uploadController.deleteContent);
+router.delete('/content/:id', readRateLimiter, requireAuth, uploadController.deleteContent);
 
 module.exports = router;

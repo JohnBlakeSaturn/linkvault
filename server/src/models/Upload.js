@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const uploadSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   uploadType: { type: String, enum: ['text', 'file'], required: true },
   content: { type: String },
   fileName: { type: String },
@@ -26,8 +27,16 @@ class Upload {
     await UploadModel.deleteOne({ id: id });
   }
 
+  static async deleteForUser(id, userId) {
+    await UploadModel.deleteOne({ id, createdBy: userId });
+  }
+
   static async findExpired() {
     return await UploadModel.find({ expiresAt: { $lt: new Date() } });
+  }
+
+  static async findByIdForUser(id, userId) {
+    return await UploadModel.findOne({ id, createdBy: userId });
   }
 }
 

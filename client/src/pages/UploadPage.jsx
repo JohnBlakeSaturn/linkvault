@@ -48,6 +48,7 @@ function UploadPage() {
     try {
       const response = await fetch('/api/upload', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
