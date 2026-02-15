@@ -27,9 +27,27 @@ const featureCards = [
 ];
 
 const testimonials = [
-  { name: 'Ash Ketchum', role: 'Reigning World Champion', quote: 'If only I used LinkVault to store my note on the Greyninja vs Charizard match-up, I would have been world champion 2 seasons ago.', tone: 'from-sky-400 to-blue-500' },
-  { name: 'Gandalf', role: 'The White (Formerly Grey) Wizard', quote: 'You shall not open links... without password.', tone: 'from-indigo-400 to-violet-500' },
-  { name: 'My Grandma', role: 'Experienced Beta Tester', quote: 'Looks nice... but how do I install candy crush saga on this?', tone: 'from-cyan-400 to-sky-500' }
+  {
+    name: 'Ash Ketchum',
+    role: 'Reigning World Champion',
+    quote: 'If only I used LinkVault to store my note on the Greyninja vs Charizard match-up, I would have been world champion 2 seasons ago.',
+    tone: 'from-sky-400 to-blue-500',
+    image: '/imgs/testimonials/ash-ketchum.jpg'
+  },
+  {
+    name: 'Gandalf',
+    role: 'The White (Formerly Grey) Wizard',
+    quote: 'You shall not open links... without password.',
+    tone: 'from-indigo-400 to-violet-500',
+    image: '/imgs/testimonials/gandalf.jpg'
+  },
+  {
+    name: 'My Grandma',
+    role: 'Experienced Beta Tester',
+    quote: 'Looks nice... but how do I install candy crush saga on this?',
+    tone: 'from-cyan-400 to-sky-500',
+    image: '/imgs/testimonials/my-grandma.jpg'
+  }
 ];
 
 function initials(name) {
@@ -58,6 +76,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
+  const [failedImages, setFailedImages] = useState({});
   const [defaultExpiry] = useState(() => toDatetimeLocalValue(new Date(Date.now() + 10 * 60 * 1000)));
   const [expiry, setExpiry] = useState(defaultExpiry);
 
@@ -171,10 +190,10 @@ export default function HomePage() {
               Secure sharing workspace
             </p>
             <h1 data-hero-title className="hero-title font-display text-4xl leading-tight md:text-6xl">
-              One link. Tight access. Built to expire.
+              One link. Secure access. Built to Deliver.
             </h1>
             <p className="muted mt-5 max-w-2xl text-sm leading-7 md:text-base">
-              Anonymous mode is intentionally minimal and safe: quick text-only sharing with default expiry. Sign in to unlock advanced controls.
+              Quick browser based text/file sharing service anywhere anytime. Sign in for more options.
             </p>
             <div className="mt-7 flex flex-wrap gap-3 text-sm">
               <button
@@ -198,7 +217,7 @@ export default function HomePage() {
             <ul className="mt-4 space-y-3 text-sm">
               <li>Secure text/file sharing with expiring links</li>
               <li>Password, one-time and max-view controls</li>
-              <li>Passport local auth with user dashboard</li>
+              <li>Secure Authentication to protect user data</li>
               <li>Scheduled cleanup + improved security</li>
             </ul>
           </article>
@@ -422,9 +441,21 @@ export default function HomePage() {
         <div className="grid gap-4 md:grid-cols-3">
           {testimonials.map((item) => (
             <article key={item.name} data-scroll-card className="panel interactive-card p-6">
-              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br ${item.tone} text-sm font-semibold text-white`}>
-                {initials(item.name)}
-              </div>
+              {item.image && !failedImages[item.name] ? (
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  loading="lazy"
+                  onError={() => {
+                    setFailedImages((prev) => ({ ...prev, [item.name]: true }));
+                  }}
+                  className="mb-4 h-12 w-12 rounded-full object-cover ring-2 ring-white/70 dark:ring-slate-700"
+                />
+              ) : (
+                <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br ${item.tone} text-sm font-semibold text-white`}>
+                  {initials(item.name)}
+                </div>
+              )}
               <p className="text-sm leading-7">"{item.quote}"</p>
               <p className="mt-5 font-semibold">{item.name}</p>
               <p className="muted text-xs">{item.role}</p>

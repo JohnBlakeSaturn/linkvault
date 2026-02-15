@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Cinzel:wght@500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Exo+2:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Orbitron:wght@500;600;700&family=Sora:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +6,8 @@
 
 :root,
 .theme-light {
+  --font-body: 'Sora', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
   --bg-accent: radial-gradient(circle at 18% 10%, #d5e8ff 0%, rgba(213, 232, 255, 0) 42%),
     radial-gradient(circle at 78% 5%, #d8f2ff 0%, rgba(216, 242, 255, 0) 40%),
     linear-gradient(145deg, #edf5ff 0%, #f5faff 50%, #eaf4ff 100%);
@@ -21,6 +23,8 @@
 }
 
 .theme-dark {
+  --font-body: 'Sora', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
   --bg-accent: radial-gradient(circle at 15% 15%, rgba(78, 70, 165, 0.42) 0%, rgba(78, 70, 165, 0) 44%),
     radial-gradient(circle at 82% 5%, rgba(48, 88, 164, 0.36) 0%, rgba(48, 88, 164, 0) 42%),
     linear-gradient(145deg, #09070f 0%, #111025 45%, #0d1022 100%);
@@ -36,6 +40,8 @@
 }
 
 .theme-pookie {
+  --font-body: 'Nunito', sans-serif;
+  --font-display: 'Baloo 2', sans-serif;
   --bg-accent: radial-gradient(circle at 15% 15%, rgba(183, 220, 255, 0.95) 0%, rgba(183, 220, 255, 0) 45%),
     radial-gradient(circle at 80% 0%, rgba(255, 210, 229, 0.85) 0%, rgba(255, 210, 229, 0) 35%),
     linear-gradient(145deg, #f5f9ff 0%, #eef4ff 35%, #fdf4ff 100%);
@@ -51,6 +57,8 @@
 }
 
 .theme-old-times {
+  --font-body: 'Cormorant Garamond', serif;
+  --font-display: 'Cinzel', serif;
   --bg-accent: radial-gradient(circle at 20% 20%, rgba(183, 137, 77, 0.22) 0%, rgba(183, 137, 77, 0) 44%),
     radial-gradient(circle at 80% 6%, rgba(117, 79, 36, 0.16) 0%, rgba(117, 79, 36, 0) 38%),
     linear-gradient(145deg, #efe0c7 0%, #e5cfac 52%, #f2e5cd 100%);
@@ -66,6 +74,8 @@
 }
 
 .theme-space {
+  --font-body: 'Sora', sans-serif;
+  --font-display: 'Exo 2', sans-serif;
   --bg-accent: radial-gradient(circle at 16% 10%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 36%),
     radial-gradient(circle at 84% 7%, rgba(148, 163, 184, 0.08) 0%, rgba(148, 163, 184, 0) 34%),
     linear-gradient(145deg, #000000 0%, #050505 56%, #090909 100%);
@@ -87,9 +97,13 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-body);
   background: var(--bg-accent);
   color: var(--text);
+}
+
+.font-display {
+  font-family: var(--font-display);
 }
 
 .panel {

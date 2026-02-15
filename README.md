@@ -103,6 +103,15 @@ Base URL: `http://localhost:5000/api`
 - `DELETE /links/mine/:id` (auth required)
   - Manual delete for own links.
 
+## Implemented Features
+
+- Core sharing flow: text/file upload (one per share), secure token-based link generation, share URL shown on frontend, link-only access, invalid-token handling (`403`), text view+copy, and file download.
+- Expiry behavior: default 10-minute expiry, optional custom expiry, graceful expired-link handling (`410`), and scheduled cleanup of expired data.
+- Security and validation: frontend+backend validation, rate limiting, `helmet`, CORS restriction, sanitization (`express-mongo-sanitize` + `hpp`), and strict file size/type checks (MIME + extension allow-list).
+- Optional/bonus features implemented: password-protected links, one-time links, max-view limits, manual delete from dashboard, authentication/user accounts with Passport local sessions, and user-based access gating for advanced options.
+- UI/UX extras: responsive modern UI, GSAP animations and smooth section scrolling, hero/features/testimonials/footer sections, toast feedback, auth modal for guest-locked features, multi-theme support (`light`, `dark`, `pookie`, `old-times`, `space`), custom logo loader, and favicon.
+
+
 ## Design Decisions
 
 - **Token-based access only**  
@@ -134,7 +143,7 @@ Base URL: `http://localhost:5000/api`
 
 - Link access currently requires possession of the exact token URL; no extra IP/device binding is used.
 
-- Automated tests cover main API flows but not every edge case yet (for example, full cleanup-job timing behavior).
+- Automated tests cover main API flows but not every edge case yet.
 
 - The app is designed for local development and demonstration. Production hardening would include stricter CORS/domain config, stronger operational monitoring, and secure deployment setup.
 
