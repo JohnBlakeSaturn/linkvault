@@ -1,35 +1,62 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+const MAX_TEXT_LENGTH = 100000;
 
 function UploadPage() {
   const [text, setText] = useState('');
   const [file, setFile] = useState(null);
+  const [expiresAt, setExpiresAt] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [result, setResult] = useState(null);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const normalizedText = useMemo(() => text.trim(), [text]);
+  const isDisabled = useMemo(() => loading || (!normalizedText && !file), [loading, normalizedText, file]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setResult(null);
+    setLinkCopied(false);
+
+    if (normalizedText && file) {
+      setLoading(false);
+      setError('Choose either text or file, not both.');
+      return;
+    }
+
+    if (normalizedText.length > MAX_TEXT_LENGTH) {
+      setLoading(false);
+      setError(`Text exceeds max length of ${MAX_TEXT_LENGTH} characters.`);
+      return;
+    }
+
+    if (expiresAt && new Date(expiresAt) <= new Date()) {
+      setLoading(false);
+      setError('Expiry must be a future date and time.');
+      return;
+    }
 
     const formData = new FormData();
-    if (text) formData.append('text', text);
+    if (normalizedText) formData.append('text', normalizedText);
     if (file) formData.append('file', file);
+    if (expiresAt) formData.append('expiresAt', new Date(expiresAt).toISOString());
 
     try {
       const response = await fetch('/api/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error(data.error || 'Upload failed');
       }
 
-      const data = await response.json();
-      navigate(`/content/${data.id}`);
-      
+      setResult(data);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -37,55 +64,70 @@ function UploadPage() {
     }
   };
 
+  const shareUrl = result?.url || (result ? `${window.location.origin}/content/${result.id}` : null);
+
+  const copyShareUrl = async () => {
+    if (!shareUrl) return;
+    await navigator.clipboard.writeText(shareUrl);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 1500);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
-        <h1 className="text-3xl font-bold mb-6">Upload Content</h1>
+    <section className="panel-card">
+      <h1>Create a secure link</h1>
+      <p className="panel-subtitle">Upload text or one file. Links expire automatically.</p>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Text Content
-            </label>
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Paste your text here..."
-              className="w-full border rounded p-3 h-40"
-              disabled={!!file}
-            />
-          </div>
-
-          <div className="text-center text-gray-500">OR</div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Upload File
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="w-full"
-              disabled={!!text}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || (!text && !file)}
-            className="w-full bg-green-600 text-white py-3 rounded hover:bg-green-700 disabled:bg-gray-400"
-          >
-            {loading ? 'Uploading...' : 'Upload'}
+      {error ? <p className="status error">{error}</p> : null}
+      {result ? (
+        <div className="status success">
+          <p>Link created. Share this URL:</p>
+          <a href={shareUrl} className="share-link">{shareUrl}</a>
+          <button type="button" className="btn btn-secondary" onClick={copyShareUrl}>
+            {linkCopied ? 'Copied' : 'Copy link'}
           </button>
-        </form>
-      </div>
-    </div>
+          <p>Expires: {new Date(result.expiresAt).toLocaleString()}</p>
+          <Link className="btn btn-secondary" to={`/content/${result.id}`}>Open shared view</Link>
+        </div>
+      ) : null}
+
+      <form onSubmit={handleSubmit} className="upload-form">
+        <label className="field">
+          <span>Text content</span>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Paste notes, code, or a message"
+            disabled={!!file}
+          />
+        </label>
+
+        <p className="divider">or</p>
+
+        <label className="field">
+          <span>File upload</span>
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            disabled={!!text}
+          />
+        </label>
+
+        <label className="field">
+          <span>Custom expiry (optional)</span>
+          <input
+            type="datetime-local"
+            value={expiresAt}
+            onChange={(e) => setExpiresAt(e.target.value)}
+            min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+          />
+        </label>
+
+        <button type="submit" className="btn btn-primary" disabled={isDisabled}>
+          {loading ? 'Uploading...' : 'Generate link'}
+        </button>
+      </form>
+    </section>
   );
 }
 

@@ -1,110 +1,189 @@
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const { randomUUID } = require('crypto');
 const Upload = require('../models/Upload');
 
-// Generate unique ID
-function generateId() {
-  return Math.random().toString(36).substring(2, 9);
+const MAX_TEXT_LENGTH = 100000;
+
+function resolveExpiry(expiresAtInput) {
+  if (!expiresAtInput) {
+    return new Date(Date.now() + 10 * 60 * 1000);
+  }
+
+  const parsed = new Date(expiresAtInput);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  if (parsed <= new Date()) {
+    return null;
+  }
+
+  return parsed;
 }
 
-// Create upload
-exports.createUpload = async (req, res) => {
-  try {
-    const { text } = req.body;
-    const file = req.file;
+function removeStoredFile(filePath) {
+  if (filePath && fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+}
 
-    // Validate input
-    if (!text && !file) {
+function setNoStoreHeaders(res) {
+  res.setHeader('Cache-Control', 'no-store, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+}
+
+function buildContentDisposition(fileName) {
+  const safeOriginal = path.basename(fileName || 'download');
+  const asciiFallback = safeOriginal.replace(/[^\x20-\x7E]+/g, '_').replace(/"/g, '') || 'download';
+  const encoded = encodeURIComponent(safeOriginal);
+  return `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encoded}`;
+}
+
+function invalidLinkResponse(res) {
+  setNoStoreHeaders(res);
+  return res.status(403).json({ error: 'Invalid or expired link' });
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function getPublicBaseUrl(req) {
+  const configuredBaseUrl = process.env.FRONTEND_BASE_URL || process.env.PUBLIC_BASE_URL;
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/+$/, '');
+  }
+
+  const requestOrigin = req.get('origin');
+  if (requestOrigin) {
+    return requestOrigin.replace(/\/+$/, '');
+  }
+
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+exports.createUpload = async (req, res) => {
+  const file = req.file;
+
+  try {
+    const { text, expiresAt } = req.body;
+    const normalizedText = typeof text === 'string' ? text.trim() : '';
+    const hasText = normalizedText.length > 0;
+    const hasFile = Boolean(file);
+
+    if (!hasText && !hasFile) {
+      removeStoredFile(file?.path);
       return res.status(400).json({ error: 'Text or file is required' });
     }
 
-    if (text && file) {
+    if (hasText && hasFile) {
+      removeStoredFile(file.path);
       return res.status(400).json({ error: 'Cannot upload both text and file' });
     }
 
-    // Generate unique ID
-    const id = generateId();
+    if (hasText && normalizedText.length > MAX_TEXT_LENGTH) {
+      removeStoredFile(file?.path);
+      return res.status(400).json({ error: `Text exceeds max length of ${MAX_TEXT_LENGTH} characters` });
+    }
 
-    // Default expiry: 10 minutes
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const resolvedExpiry = resolveExpiry(expiresAt);
+    if (!resolvedExpiry) {
+      removeStoredFile(file?.path);
+      return res.status(400).json({ error: 'Invalid expiresAt. Use a valid future datetime.' });
+    }
 
-    // Build upload data
+    const id = randomUUID();
+
     const uploadData = {
       id,
-      uploadType: text ? 'text' : 'file',
-      content: text || null,
-      fileName: file ? file.originalname : null,
+      uploadType: hasText ? 'text' : 'file',
+      content: hasText ? normalizedText : null,
+      fileName: file ? path.basename(file.originalname) : null,
       filePath: file ? file.path : null,
       fileSize: file ? file.size : null,
-      expiresAt
+      expiresAt: resolvedExpiry,
     };
 
     await Upload.create(uploadData);
 
-    res.status(201).json({
+    const baseUrl = getPublicBaseUrl(req);
+    const sharePath = `/content/${id}`;
+
+    return res.status(201).json({
       success: true,
       id,
-      expiresAt
+      url: `${baseUrl}${sharePath}`,
+      sharePath,
+      expiresAt: resolvedExpiry,
     });
-
   } catch (error) {
+    removeStoredFile(file?.path);
     console.error('Upload error:', error);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 
-// Get content by ID
 exports.getContent = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isUuid(id)) {
+      return invalidLinkResponse(res);
+    }
 
-    // Find upload
     const upload = await Upload.findById(id);
 
-    // Not found
     if (!upload) {
-      return res.status(404).json({ error: 'Content not found' });
+      return invalidLinkResponse(res);
     }
 
-    // Check expiry
     if (new Date() > new Date(upload.expiresAt)) {
-      // Delete from DB
       await Upload.delete(id);
-
-      // Delete file if exists
-      if (upload.filePath && fs.existsSync(upload.filePath)) {
-        fs.unlinkSync(upload.filePath);
-      }
-
-      return res.status(410).json({ error: 'Content has expired' });
+      removeStoredFile(upload.filePath);
+      return invalidLinkResponse(res);
     }
 
-    // Return based on type
     if (upload.uploadType === 'text') {
+      setNoStoreHeaders(res);
       return res.json({
         type: 'text',
         content: upload.content,
-        expiresAt: upload.expiresAt
+        expiresAt: upload.expiresAt,
       });
-    } else {
-      // Check file exists on disk
-      if (!fs.existsSync(upload.filePath)) {
-        return res.status(404).json({ error: 'File not found on server' });
-      }
-
-      return res.download(upload.filePath, upload.fileName);
     }
 
+    if (!fs.existsSync(upload.filePath)) {
+      return invalidLinkResponse(res);
+    }
+
+    const fileName = upload.fileName || 'download';
+    setNoStoreHeaders(res);
+    res.setHeader('Content-Disposition', buildContentDisposition(fileName));
+    res.setHeader('Content-Type', 'application/octet-stream');
+
+    const fileStream = fs.createReadStream(upload.filePath);
+    fileStream.on('error', (error) => {
+      console.error('File stream error:', error);
+      if (!res.headersSent) {
+        return res.status(500).json({ error: 'Server error' });
+      }
+      return res.destroy(error);
+    });
+
+    return fileStream.pipe(res);
   } catch (error) {
     console.error('Get content error:', error);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 
-// Delete content manually
 exports.deleteContent = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isUuid(id)) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
 
     const upload = await Upload.findById(id);
 
@@ -112,51 +191,45 @@ exports.deleteContent = async (req, res) => {
       return res.status(404).json({ error: 'Content not found' });
     }
 
-    // Delete file if exists
-    if (upload.filePath && fs.existsSync(upload.filePath)) {
-      fs.unlinkSync(upload.filePath);
-    }
-
-    // Delete from DB
+    removeStoredFile(upload.filePath);
     await Upload.delete(id);
 
-    res.json({ success: true, message: 'Deleted successfully' });
-
+    return res.json({ success: true, message: 'Deleted successfully' });
   } catch (error) {
     console.error('Delete error:', error);
-    res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 
-// uploadController.js - Add this
 exports.getContentInfo = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isUuid(id)) {
+      return invalidLinkResponse(res);
+    }
+
     const upload = await Upload.findById(id);
 
     if (!upload) {
-      return res.status(404).json({ error: 'Content not found' });
+      return invalidLinkResponse(res);
     }
 
     if (new Date() > new Date(upload.expiresAt)) {
       await Upload.delete(id);
-      if (upload.filePath && fs.existsSync(upload.filePath)) {
-        fs.unlinkSync(upload.filePath);
-      }
-      return res.status(410).json({ error: 'Content has expired' });
+      removeStoredFile(upload.filePath);
+      return invalidLinkResponse(res);
     }
 
-    // Always return JSON with metadata
-    res.json({
+    setNoStoreHeaders(res);
+    return res.json({
       type: upload.uploadType,
-      content: upload.content || null,     // null for files
+      content: upload.content || null,
       fileName: upload.fileName || null,
       fileSize: upload.fileSize || null,
-      expiresAt: upload.expiresAt
+      expiresAt: upload.expiresAt,
     });
-
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('Get content info error:', error);
+    return res.status(500).json({ error: 'Server error' });
   }
 };
